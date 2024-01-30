@@ -1,8 +1,43 @@
-body {
-    display: grid;
+.main {
+    display: flex;
+    justify-content:center;
+    align-items:center;   
+}
+
+.content {
+    display: inline-grid;
+    grid-template-columns: auto auto auto;
+    column-gap: 10px;
+    row-gap: 10px;    
+}
+
+.title {
+    grid-column: 1/ span 3;
+    display: flex;
+    justify-content:center;
+    align-items:center;    
 }
 
 label {
     grid-column: 1;
+    display: flex;
+    justify-content:right;
+    align-items:flex-end;
 }
+.labelCenter {
+    grid-column: 2;
+    justify-content:left;
+    align-items:flex-start;    
+}
+
+.labelRight {
+    grid-column: 3;
+    justify-content:left;
+    align-items:flex-start; 
+}
+
+input {
+    grid-column: 2;
+    width: 50px;
+  }
 
