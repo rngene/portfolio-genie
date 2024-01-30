@@ -24,6 +24,11 @@ label {
     justify-content:right;
     align-items:flex-end;
 }
+
+hr {
+    grid-column: 1/ span 3;
+    width: 100%;
+}
 .labelCenter {
     grid-column: 2;
     justify-content:left;
