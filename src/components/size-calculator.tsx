@@ -1,6 +1,6 @@
 'use client'
 import Trade from "@/models/trade";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 
 function init() : Trade {
@@ -28,7 +28,7 @@ function caculateTrade(trade:Trade) : Trade {
 
 function formatCurrency(f: number): string {
     if (isNaN(f)) {
-        return '-';
+        return '';
     }    
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -41,7 +41,7 @@ function formatCurrency(f: number): string {
 
 function formatNumber(f: number): string {
     if (isNaN(f)) {
-        return '-';
+        return '';
     }
     return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
@@ -51,7 +51,7 @@ function formatNumber(f: number): string {
 
 function formatPercentage(f: number): string {
     if (isNaN(f)) {
-        return '-';
+        return '';
     }
     return new Intl.NumberFormat('en-US', {
         style: 'percent',
@@ -60,14 +60,28 @@ function formatPercentage(f: number): string {
   }).format(f);
 }
 
-
 export function SizeCalculator() {
     const [trade, setTrade]= useState<Trade>(init);
-    const [isEditingRisk, setIsEditingRisk] = useState(false);
+    const sizeInputRef = useRef<HTMLInputElement>(null);
+    const stopInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() =>{
+        if (sizeInputRef.current) {
+            sizeInputRef.current.value = '0.50';
+          }
+    },[])
 
     function onPriceChangeHandler (e: React.FormEvent<HTMLInputElement>) {
         const newValue = parseFloat(e.currentTarget.value);
         const newTrade = {...trade, price:newValue};
+
+        const currentStop  = stopInputRef?.current?.value;
+        if (!currentStop || isNaN(parseFloat(currentStop))) {
+            newTrade.stop = newTrade.price*0.95;
+            if (stopInputRef.current) {
+                stopInputRef.current.value = newTrade.stop.toString();
+            }
+        }
 
         setTrade(caculateTrade(newTrade));
       }  
@@ -85,7 +99,6 @@ export function SizeCalculator() {
       }   
       
       function onRiskChangeHandler (e: React.FormEvent<HTMLInputElement>) {
-        setIsEditingRisk(false);
         const newValue = parseFloat(e.currentTarget.value);
         if (isNaN(newValue)) {
             return;
@@ -94,20 +107,16 @@ export function SizeCalculator() {
         setTrade(caculateTrade(newTrade));
       } 
       
-      function editRisk() {
-        setIsEditingRisk(true);
-      }
 
     return <div className="main">
         <div className="content">
             <h1 className="title">Size calculator</h1>
-            <label>Account total</label><input type='text'  onBlur={onAccountValueChangeHandler} /><label className='labelRight'>{formatCurrency(trade.accountValue)}</label>
+            <label>Account total</label><input type='text'  onBlur={onAccountValueChangeHandler} />
             <label>Risk</label>
-            { isEditingRisk ? 
-                <input type='text' onBlur={onRiskChangeHandler} /> :  <label className='labelCenter' onClick={editRisk}>{formatPercentage(trade.risk/100)}</label> }    
+            <input type='text' ref={sizeInputRef} onBlur={onRiskChangeHandler} />
             <hr />
-            <label>Price</label><input type='text'  onBlur={onPriceChangeHandler} /><label className='labelRight'>{formatCurrency(trade.price)}</label>
-            <label>Stop</label><input type='text' onBlur={onStopChangeHandler}/><label className='labelRight'>{formatCurrency(trade.stop)}&nbsp;|&nbsp;{formatPercentage((trade.price-trade.stop)/trade.price)}</label>
+            <label>Price</label><input type='text' onBlur={onPriceChangeHandler} />
+            <label>Stop</label><input type='text' ref={stopInputRef} onBlur={onStopChangeHandler}/><label className='labelRight'>{formatPercentage((trade.price-trade.stop)/trade.price)}</label>
             <label>Shares</label><label className='labelCenter'>{formatNumber(trade.shares)}</label>
             <label>% of account</label><label className='labelCenter'>{formatPercentage(trade.percentageOfAccount)}</label>
             <hr />
